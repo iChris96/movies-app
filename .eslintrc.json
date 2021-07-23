@@ -13,6 +13,8 @@
 	"rules": {
 		"indent": "off",
 		"quotes": "warn",
-		"semi": "off"
+		"semi": "off",
+		"comma-dangle": "off",
+		"space-before-function-paren": "off"
 	}
 }
