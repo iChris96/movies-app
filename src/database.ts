@@ -14,17 +14,17 @@ function getStateMessage(type: number) {
     return `Mongo Database Conection Status: ${status[type]}`;
 }
 
-const mongoSettings = {
-    URI: 'mongodb://localhost/movies_app',
-};
-
-const mongoOptions = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-};
-
 export default async function connect() {
+    const mongoSettings = {
+        URI: 'mongodb://localhost/movies_app',
+    };
+
+    const mongoOptions = {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useCreateIndex: true,
+    };
+
     try {
         const conection = await mongoose.connect(
             mongoSettings.URI,
