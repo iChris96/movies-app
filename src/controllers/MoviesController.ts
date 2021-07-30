@@ -1,13 +1,15 @@
-import { Movies } from '../models/Movies';
+import { IMovie, Movies } from '../models/Movies';
 
 // Relevator Module Pattern
 export default (() => {
     const resource = 'api/users';
 
     return {
-        getAllMovies: async () => {
+        getAllMovies: async (): Promise<IMovie[]> => {
             const movies = await Movies.find();
-            console.log('movies: ', movies);
+
+            if (!movies) return [];
+
             return movies;
         },
         create: async () => {},
