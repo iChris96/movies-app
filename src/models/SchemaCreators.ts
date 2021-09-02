@@ -1,17 +1,20 @@
-import { model, Schema, SchemaDefinition } from 'mongoose';
+import { model, Schema, SchemaDefinition, Model } from 'mongoose';
 
-const auditProps: SchemaDefinition = {};
+const auditProps: SchemaDefinition = {
+    createdAt: { default: new Date() },
+    updatedAt: { default: new Date() },
+};
 
 // Curryng Patern
-const Model = (defaultProps: SchemaDefinition) => {
-    return (name: string, props: SchemaDefinition) => {
-        const schema = new Schema({
+const CustomModel = <X>(defaultProps: X) => {
+    return <Y>(name: string, props: Y): Model<X | Y> => {
+        const schema = new Schema<X | Y>({
             ...defaultProps,
             ...props,
         });
 
-        return model(name, schema);
+        return model<X | Y>(name, schema);
     };
 };
 
-export const withAudit = Model(auditProps);
+export const withAudit = CustomModel<SchemaDefinition>(auditProps);
