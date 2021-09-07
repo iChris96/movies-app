@@ -1,8 +1,10 @@
+import { IFailure } from '../interfaces/middlewares';
+import { IMovieParams } from '../interfaces/movies';
 import { IMovie, Movies } from '../models/Movies';
 
 // Relevator Module Pattern
 export default (() => {
-    const resource = 'api/users';
+    const notResultsFound: IFailure = { message: 'No Results found' };
 
     return {
         getAllMovies: async (): Promise<IMovie[]> => {
@@ -12,6 +14,15 @@ export default (() => {
 
             return movies;
         },
-        create: async () => {},
+        getBy: async ({
+            sortBy,
+            page,
+        }: IMovieParams): Promise<IMovie[] | IFailure> => {
+            const movies = await Movies.find();
+
+            if (!movies) return notResultsFound;
+
+            return movies;
+        },
     };
 })();
