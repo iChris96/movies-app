@@ -1,10 +1,16 @@
 import { IFailure } from '../interfaces/middlewares';
-import { IMovieParams } from '../interfaces/movies';
-import { IMovie, Movies } from '../models/Movies';
+import { IMovie, IMovieParams } from '../interfaces/movies';
+import { Movies } from '../models/Movies';
 
 // Relevator Module Pattern
 export default (() => {
     const notResultsFound: IFailure = { message: 'No Results found' };
+    const invalidPageValue: IFailure = {
+        message: 'page must be less than or equal to 400',
+    };
+    const unexpectedCall: IFailure = {
+        message: 'something went wrong',
+    };
 
     return {
         getAllMovies: async (): Promise<IMovie[]> => {
@@ -26,11 +32,18 @@ export default (() => {
 
             sortParams[sortBy.sort] = sortBy.order;
 
-            const movies = await Movies.find().sort(sortParams);
+            try {
+                const movies = await Movies.find().sort(sortParams);
 
-            if (!movies) return notResultsFound;
+                if (!movies) return notResultsFound;
 
-            return movies;
+                if (Number(page) > 400) return invalidPageValue;
+
+                return movies;
+            } catch (err) {
+                console.error('unexpected error: ', unexpectedCall);
+                return unexpectedCall;
+            }
         },
     };
 })();
