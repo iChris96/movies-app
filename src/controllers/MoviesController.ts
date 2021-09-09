@@ -18,7 +18,15 @@ export default (() => {
             sortBy,
             page,
         }: IMovieParams): Promise<IMovie[] | IFailure> => {
-            const movies = await Movies.find();
+            console.log(
+                `movies.controller.params - sortBy.sort: ${sortBy.sort}  - sortBy.order: ${sortBy.order} - page: ${page} `
+            );
+
+            const sortParams: any = {};
+
+            sortParams[sortBy.sort] = sortBy.order;
+
+            const movies = await Movies.find().sort(sortParams);
 
             if (!movies) return notResultsFound;
 
