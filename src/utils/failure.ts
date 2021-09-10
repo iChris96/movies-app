@@ -1,6 +1,5 @@
 /* eslint-disable no-useless-constructor */
 import { IFailure } from '../interfaces/middlewares';
-import { IMovie } from '../interfaces/movies';
 
 export class NetworkFailure implements IFailure {
     message = 'network failure';
@@ -41,6 +40,6 @@ export const isDatabaseFailure = (
     return failure instanceof DatabaseFailure;
 };
 
-export const isFailure = (val: IMovie[] | IFailure): val is IFailure => {
+export const isFailure = (val: any | IFailure): val is IFailure => {
     return (val as IFailure).message !== undefined;
 };
