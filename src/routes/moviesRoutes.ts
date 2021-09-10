@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
-import { sortByValues } from '../consts/movies';
+import { DESCENDING, sortByValues } from '../consts/movies';
 import MoviesController from '../controllers/MoviesController';
-import { IMovieParams } from '../interfaces/movies';
+import { IMovieGetByParams } from '../interfaces/movies';
 import { IDiscoverResponse, IErrorResponse } from '../interfaces/responses';
 import { isFailure } from '../utils/failure';
 import { isNumeric, isString } from '../utils/utils';
@@ -9,12 +9,13 @@ import { isNumeric, isString } from '../utils/utils';
 const router = Router();
 
 router.route('/discover').get(async (req: Request, res: Response) => {
-    let defaultParams: IMovieParams = {
-        sortBy: { sort: 'popularity', order: 'asc' },
-        page: '0',
+    let defaultParams: IMovieGetByParams = {
+        sortBy: { sort: 'popularity', order: DESCENDING },
+        page: 1,
+        limit: 4,
     };
 
-    const { sortBy, page } = req.query;
+    const { sortBy, page, limit } = req.query;
 
     if (sortBy && isString(sortBy)) {
         if (sortByValues[sortBy.toString()] !== undefined) {
@@ -26,7 +27,11 @@ router.route('/discover').get(async (req: Request, res: Response) => {
     }
 
     if (page && isString(page) && isNumeric(page)) {
-        defaultParams = { ...defaultParams, page: page.toString() };
+        defaultParams = { ...defaultParams, page: Number(page) };
+    }
+
+    if (limit && isString(limit) && isNumeric(limit)) {
+        defaultParams = { ...defaultParams, limit: Number(limit) };
     }
 
     const data = await MoviesController.getBy(defaultParams);
@@ -40,10 +45,10 @@ router.route('/discover').get(async (req: Request, res: Response) => {
     }
 
     const response: IDiscoverResponse = {
-        page: 0,
-        results: data,
-        totalPages: 400,
-        totalResults: 10000,
+        page: defaultParams.page,
+        results: data.data,
+        totalPages: data.totalPages,
+        totalResults: data.totalResults,
     };
 
     return res.status(200).json(response);
