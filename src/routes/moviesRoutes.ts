@@ -37,16 +37,16 @@ router.route('/discover').get(async (req: Request, res: Response) => {
         };
 
         return res.status(422).json(response);
-    } else {
-        const response: IDiscoverResponse = {
-            page: 0,
-            results: data,
-            totalPages: 400,
-            totalResults: 10000,
-        };
-
-        return res.status(200).json(response);
     }
+
+    const response: IDiscoverResponse = {
+        page: 0,
+        results: data,
+        totalPages: 400,
+        totalResults: 10000,
+    };
+
+    return res.status(200).json(response);
 });
 
 export default router;

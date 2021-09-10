@@ -1,15 +1,13 @@
 import { IFailure } from '../interfaces/middlewares';
 import { IMovie, IMovieParams } from '../interfaces/movies';
 import { Movies } from '../models/Movies';
+import { DatabaseFailure, NetworkFailure } from '../utils/failure';
 
 // Relevator Module Pattern
 export default (() => {
     const notResultsFound: IFailure = { message: 'No Results found' };
     const invalidPageValue: IFailure = {
         message: 'page must be less than or equal to 400',
-    };
-    const unexpectedCall: IFailure = {
-        message: 'something went wrong',
     };
 
     return {
@@ -41,8 +39,8 @@ export default (() => {
 
                 return movies;
             } catch (err) {
-                console.error('unexpected error: ', unexpectedCall);
-                return unexpectedCall;
+                console.error('unexpected db error: ', err);
+                return new DatabaseFailure();
             }
         },
     };

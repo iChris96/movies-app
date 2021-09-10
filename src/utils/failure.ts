@@ -8,7 +8,7 @@ export class NetworkFailure implements IFailure {
 }
 
 export class DatabaseFailure implements IFailure {
-    message = '';
+    message = 'database failure';
     constructor() {}
 }
 
