@@ -1,21 +1,5 @@
 import { Schema, model } from 'mongoose';
-
-export interface IMovie {
-    id: number;
-    adult: boolean;
-    backdropPath: string;
-    genreIds: Array<number>;
-    originalLenguaje: string;
-    originalTitle: string;
-    overview: string;
-    popularity: number;
-    releaseDate: string;
-    title: string;
-    video: boolean;
-    voteAverage: number;
-    voteCount: number;
-    posterPath: string;
-}
+import { IMovie } from '../interfaces/movies';
 
 const MovieSchema = new Schema<IMovie>({
     id: Number,
