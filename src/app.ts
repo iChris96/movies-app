@@ -1,5 +1,5 @@
 import express from 'express';
-import { moviesRoutes } from './routes';
+import { moviesRoutes, authRoutes } from './routes';
 
 // Construct pattern
 class Application {
@@ -21,6 +21,7 @@ class Application {
 
     routes() {
         this.app.use('/movies', moviesRoutes);
+        this.app.use('/auth', authRoutes);
     }
 
     start() {
