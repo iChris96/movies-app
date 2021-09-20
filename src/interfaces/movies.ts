@@ -1,8 +1,9 @@
-export type SortBy = { sort: string; order: string };
+export type SortBy = { sort: string; order: number };
 
-export interface IMovieParams {
-    page: string;
+export interface IMovieGetByParams {
+    page: number;
     sortBy: SortBy;
+    limit: number;
 }
 
 export interface IMovie {
