@@ -37,9 +37,9 @@ Provide a platform that contains the best information about a movies and tv show
 
 ### Movies
 
-| Path             | Verb | Description                                                                                                 |
-| ---------------- | :--: | ----------------------------------------------------------------------------------------------------------- |
-| /movies/discover | GET  | Discover movies by different types of data like average rating, number of votes, genres and certifications. |
+| Path             | Verb | Description                                                                                                 | Params              |
+| ---------------- | :--: | ----------------------------------------------------------------------------------------------------------- | ------------------- |
+| /movies/discover | GET  | Discover movies by different types of data like average rating, number of votes, genres and certifications. | sortBy, page, limit |
 
 ### Auth
 
