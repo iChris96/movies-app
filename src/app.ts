@@ -1,5 +1,6 @@
 import express from 'express';
 import { moviesRoutes, authRoutes } from './routes';
+import dotenv from 'dotenv';
 
 // Construct pattern
 class Application {
@@ -12,7 +13,9 @@ class Application {
         this.routes();
     }
 
-    settings() {}
+    settings() {
+        dotenv.config({ path: '.env' });
+    }
 
     middlewares() {
         this.app.use(express.json()); // app understands json
@@ -30,6 +33,8 @@ class Application {
                 `Example app listening at http://localhost:${this.port}`
             );
         });
+
+        console.log({ process: process.env.SECRET_TOKEN });
     }
 }
 
