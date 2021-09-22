@@ -1,7 +1,13 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import UserController from './UserController';
 import bcrypt from 'bcrypt';
-import { SALT_ROUNDS } from '../consts/auth';
+import jwt from 'jsonwebtoken';
+import {
+    SALT_ROUNDS,
+    HEADER_TOKEN,
+    TOKEN_EXP,
+    TOKEN_SECRET,
+} from '../consts/auth';
 
 export default (() => {
     const hashPassword = (myPlaintextPassword: string) => {
@@ -19,6 +25,21 @@ export default (() => {
         const match = await bcrypt.compare(password, hashedPassword);
         console.log({ password, hashedPassword, match });
         return match;
+    };
+
+    const createNewToken = (payload: any) => {
+        console.log({ TOKEN_SECRET });
+        const token = jwt.sign(payload, TOKEN_SECRET, {
+            expiresIn: TOKEN_EXP,
+        });
+        console.log({ token });
+        return token;
+    };
+
+    const readToken = async (token: string) => {
+        const decoded = await jwt.verify(token, TOKEN_SECRET);
+        console.log({ decoded });
+        return decoded;
     };
 
     return {
@@ -48,13 +69,30 @@ export default (() => {
                 });
             }
 
-            const token = 'hklmno';
+            const token = createNewToken({ id: user._id });
+            readToken(token);
 
             // return token and response
-            res.header('auth-token', token).status(200).json({
+            res.header(HEADER_TOKEN, token).status(200).json({
                 auth: true,
                 token,
             });
+        },
+        withToken: async (req: Request, res: Response, next: NextFunction) => {
+            const token = req.header(HEADER_TOKEN);
+            if (!token) {
+                return res.status(401).json({
+                    auth: false,
+                    message: 'No token provided',
+                });
+            }
+
+            try {
+                readToken(token);
+                next();
+            } catch (error: any) {
+                res.status(401).send({ message: error.message });
+            }
         },
     };
 })();
