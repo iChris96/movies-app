@@ -1,7 +1,26 @@
 import { Request, Response } from 'express';
 import UserController from './UserController';
+import bcrypt from 'bcrypt';
+import { SALT_ROUNDS } from '../consts/auth';
 
 export default (() => {
+    const hashPassword = (myPlaintextPassword: string) => {
+        const saltRounds = SALT_ROUNDS;
+        const salt = bcrypt.genSaltSync(saltRounds);
+        const hash = bcrypt.hashSync(myPlaintextPassword, salt);
+        console.log({ hash });
+        return hash;
+    };
+
+    const validatePassword = async (
+        password: string,
+        hashedPassword: string
+    ) => {
+        const match = await bcrypt.compare(password, hashedPassword);
+        console.log({ password, hashedPassword, match });
+        return match;
+    };
+
     return {
         signin: async (req: Request, res: Response) => {
             // get data
@@ -21,7 +40,7 @@ export default (() => {
 
             // handle valid user
             console.log({ user });
-            const validPassword = password === user.password;
+            const validPassword = validatePassword(password, user.password);
             if (!validPassword) {
                 return res.status(403).send({
                     auth: false,
@@ -29,7 +48,6 @@ export default (() => {
                 });
             }
 
-            // create token
             const token = 'hklmno';
 
             // return token and response
