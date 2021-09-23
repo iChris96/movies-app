@@ -33,8 +33,6 @@ class Application {
                 `Example app listening at http://localhost:${this.port}`
             );
         });
-
-        console.log({ process: process.env.SECRET_TOKEN });
     }
 }
 

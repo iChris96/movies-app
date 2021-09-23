@@ -8,6 +8,7 @@ import {
     TOKEN_EXP,
     TOKEN_SECRET,
 } from '../consts/auth';
+import { Users } from '../models/Users';
 
 export default (() => {
     const hashPassword = (myPlaintextPassword: string) => {
@@ -61,7 +62,10 @@ export default (() => {
 
             // handle valid user
             console.log({ user });
-            const validPassword = validatePassword(password, user.password);
+            const validPassword = await validatePassword(
+                password,
+                user.password
+            );
             if (!validPassword) {
                 return res.status(403).send({
                     auth: false,
@@ -70,7 +74,6 @@ export default (() => {
             }
 
             const token = createNewToken({ id: user._id });
-            readToken(token);
 
             // return token and response
             res.header(HEADER_TOKEN, token).status(200).json({
@@ -90,6 +93,45 @@ export default (() => {
             try {
                 readToken(token);
                 next();
+            } catch (error: any) {
+                res.status(401).send({ message: error.message });
+            }
+        },
+        signup: async (req: Request, res: Response) => {
+            const { username, email, password } = req.body;
+
+            //  validate data
+
+            // call database
+            const userByEmail = await UserController.findUser(email);
+
+            // handle email in use
+            if (userByEmail) {
+                return res.status(404).send({
+                    auth: false,
+                    message: 'Email already in use',
+                });
+            }
+
+            // create a new user and save into database
+            const user = new Users({
+                username,
+                email,
+                password,
+            });
+
+            user.password = hashPassword(password);
+
+            console.log({ user });
+
+            try {
+                await user.save();
+                const token = createNewToken({ id: user._id });
+
+                res.header('auth-token', token).json({
+                    message: 'User Saved',
+                    token,
+                });
             } catch (error: any) {
                 res.status(401).send({ message: error.message });
             }
