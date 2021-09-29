@@ -1,8 +1,12 @@
+import { Request, Response } from 'express';
 import { Aggregate } from 'mongoose';
+import { DESCENDING, sortByValues } from '../consts/movies';
 import { IFailure } from '../interfaces/middlewares';
 import { IMovie, IMovieGetByParams } from '../interfaces/movies';
+import { IDiscoverResponse, IErrorResponse } from '../interfaces/responses';
 import { Movies } from '../models/Movies';
-import { DatabaseFailure } from '../utils/failure';
+import { DatabaseFailure, isFailure } from '../utils/failure';
+import { isNumeric, isString } from '../utils/utils';
 
 // Relevator Module Pattern
 export default (() => {
@@ -46,65 +50,112 @@ export default (() => {
     const findPaginatedMovies = ({ limit, skipIndex, sort }: any) =>
         Movies.find().sort(sort).limit(limit).skip(skipIndex);
 
-    return {
-        getAllMovies: async (): Promise<IMovie[]> => {
-            const movies = await Movies.find();
+    // eslint-disable-next-line no-unused-vars
+    const getAllMovies = async (): Promise<IMovie[]> => {
+        const movies = await Movies.find();
 
-            if (!movies) return [];
+        if (!movies) return [];
 
-            return movies;
-        },
-        getBy: async ({
-            sortBy,
-            page,
-            limit,
-        }: IMovieGetByParams): Promise<
-            | { data: IMovie[]; totalResults: number; totalPages: number }
-            | IFailure
-        > => {
-            console.log(
-                `movies.controller.params - sortBy.sort: ${sortBy.sort}  - sortBy.order: ${sortBy.order} - page: ${page} `
-            );
+        return movies;
+    };
 
-            const sortParams: any = {};
+    const getBy = async ({
+        sortBy,
+        page,
+        limit,
+    }: IMovieGetByParams): Promise<
+        { data: IMovie[]; totalResults: number; totalPages: number } | IFailure
+    > => {
+        console.log(
+            `movies.controller.params - sortBy.sort: ${sortBy.sort}  - sortBy.order: ${sortBy.order} - page: ${page} `
+        );
 
-            sortParams[sortBy.sort] = sortBy.order;
+        const sortParams: any = {};
 
-            console.log('sortParams: ', sortParams);
+        sortParams[sortBy.sort] = sortBy.order;
 
-            try {
-                if (page < 1) return greatherPageFailure;
+        console.log('sortParams: ', sortParams);
 
-                const movies = await aggregatePaginatedMovies({
-                    limit,
-                    page,
-                    sort: sortParams,
-                });
+        try {
+            if (page < 1) return greatherPageFailure;
 
-                if (!movies) return notResultsFound;
+            const movies = await aggregatePaginatedMovies({
+                limit,
+                page,
+                sort: sortParams,
+            });
 
-                const [
-                    {
-                        total: [total = 0],
-                        results,
-                    },
-                ] = movies;
+            if (!movies) return notResultsFound;
 
-                const totalPages = Math.trunc(total / limit);
+            const [
+                {
+                    total: [total = 0],
+                    results,
+                },
+            ] = movies;
 
-                if (Number(page) > totalPages) {
-                    return lessOrEqualPageFailure(totalPages);
-                }
+            const totalPages = Math.trunc(total / limit);
 
-                return {
-                    totalResults: total,
-                    data: results,
-                    totalPages,
-                };
-            } catch (err) {
-                console.error('unexpected db error: ', err);
-                return new DatabaseFailure();
+            if (Number(page) > totalPages) {
+                return lessOrEqualPageFailure(totalPages);
             }
+
+            return {
+                totalResults: total,
+                data: results,
+                totalPages,
+            };
+        } catch (err) {
+            console.error('unexpected db error: ', err);
+            return new DatabaseFailure();
+        }
+    };
+
+    return {
+        discoverMovies: async (req: Request, res: Response) => {
+            let defaultParams: IMovieGetByParams = {
+                sortBy: { sort: 'popularity', order: DESCENDING },
+                page: 1,
+                limit: 4,
+            };
+
+            const { sortBy, page, limit } = req.query;
+
+            if (sortBy && isString(sortBy)) {
+                if (sortByValues[sortBy.toString()] !== undefined) {
+                    defaultParams = {
+                        ...defaultParams,
+                        sortBy: sortByValues[sortBy.toString()],
+                    };
+                }
+            }
+
+            if (page && isString(page) && isNumeric(page)) {
+                defaultParams = { ...defaultParams, page: Number(page) };
+            }
+
+            if (limit && isString(limit) && isNumeric(limit)) {
+                defaultParams = { ...defaultParams, limit: Number(limit) };
+            }
+
+            const data = await getBy(defaultParams);
+
+            if (isFailure(data)) {
+                const response: IErrorResponse = {
+                    errors: [data.message],
+                };
+
+                return res.status(422).json(response);
+            }
+
+            const response: IDiscoverResponse = {
+                page: defaultParams.page,
+                results: data.data,
+                totalPages: data.totalPages,
+                totalResults: data.totalResults,
+            };
+
+            return res.status(200).json(response);
         },
     };
 })();
