@@ -37,12 +37,6 @@ export default (() => {
         return token;
     };
 
-    const readToken = async (token: string) => {
-        const decoded = await jwt.verify(token, TOKEN_SECRET);
-        console.log({ decoded });
-        return decoded;
-    };
-
     return {
         signin: async (req: Request, res: Response) => {
             // get data
@@ -76,14 +70,14 @@ export default (() => {
             const token = createNewToken({ id: user._id });
 
             // return token and response
-            res.header(HEADER_TOKEN, token).status(200).json({
+            res.header(HEADER_TOKEN, 'Bearer ' + token).json({
                 auth: true,
                 token,
             });
         },
         withToken: async (req: Request, res: Response, next: NextFunction) => {
-            const token = req.header(HEADER_TOKEN);
-            if (!token) {
+            const bearerHeader = req.header(HEADER_TOKEN);
+            if (!bearerHeader) {
                 return res.status(401).json({
                     auth: false,
                     message: 'No token provided',
@@ -91,10 +85,17 @@ export default (() => {
             }
 
             try {
-                readToken(token);
+                const bearerToken = bearerHeader.split(' ')[1];
+                const decodedToken = await jwt.verify(
+                    bearerToken,
+                    TOKEN_SECRET
+                );
+                console.log({ decodedToken });
                 next();
-            } catch (error: any) {
-                res.status(401).send({ message: error.message });
+            } catch (err) {
+                // err
+                console.log({ tokenError: err });
+                res.status(401).send({ message: 'Invalid or Expired Token' });
             }
         },
         signup: async (req: Request, res: Response) => {
@@ -128,7 +129,7 @@ export default (() => {
                 await user.save();
                 const token = createNewToken({ id: user._id });
 
-                res.header('auth-token', token).json({
+                res.header(HEADER_TOKEN, 'Bearer ' + token).json({
                     message: 'User Saved',
                     token,
                 });
