@@ -94,7 +94,7 @@ export default (() => {
                 },
             ] = movies;
 
-            const totalPages = Math.trunc(total / limit);
+            const totalPages = Math.round(total / limit);
 
             if (Number(page) > totalPages) {
                 return lessOrEqualPageFailure(totalPages);
